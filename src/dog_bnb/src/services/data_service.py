@@ -129,8 +129,8 @@ def book_room(active_account: Owner, checkin, checkout, dog, room):
 
 
 def get_dogs_for_user(active_account: Owner) -> List[Dog]:
-    owner = Owner.objects(id=active_account.id).first()
-    dogs = Dog.objects(id__in=owner.dog_ids).all()
+    #owner = Owner.objects(id__in=active_account.id).first()
+    dogs = Dog.objects(id__in=active_account.dog_ids).all()
 
     return list(dogs)
 
@@ -138,7 +138,7 @@ def get_dogs_for_user(active_account: Owner) -> List[Dog]:
 def get_bookings_for_user(active_account: Owner) -> List[Booking]:
     booked_rooms = Room.objects() \
         .filter(bookings__guest_owner_id=active_account.id) \
-        .only('bookings', 'name')
+        .only('bookings', 'name', 'price')
 
     def reverse_map_room_to_booking(room, booking):
         booking.room = room

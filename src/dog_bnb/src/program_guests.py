@@ -162,16 +162,16 @@ def view_bookings():
         error_msg("You must login to continue.")
         return
 
-    dogs = {dog.id: dog for dog in svc.get_dogs_for_user(state.active_account.id)}
-    bookings = svc.get_bookings_for_user(state.active_account.id)
+    dogs = {dog.id: dog for dog in svc.get_dogs_for_user(state.active_account)}
+    bookings = svc.get_bookings_for_user(state.active_account)
 
     print(f"You have {len(bookings)} bookings.")
     for booking in bookings:
-        print(" * Dog {] is booked at {} for {}/night from {} for {} nights.".format(
+        print(" * Dog: {} is booked at {} for {}/night from {} for {} nights.".format(
             dogs.get(booking.guest_dog_id).name,
             booking.room.name,
             booking.room.price,
-            datetime.date(booking.checkin_date),
+            booking.checkin_date,
             (booking.checkout_date - booking.checkin_date).days
         ))
 
