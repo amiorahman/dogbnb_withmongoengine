@@ -131,7 +131,7 @@ def list_rooms(supress_header=False):
 
     rooms = svc.find_rooms_for_user(state.active_account)
 
-    print(f"You have {len(rooms)} registered.")
+    print(f"You have {len(rooms)} registered rooms.")
     for index, room in enumerate(rooms):
         print(f" {index + 1}. {room.name} is priced at {room.price}")
 

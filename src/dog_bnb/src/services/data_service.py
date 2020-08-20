@@ -3,6 +3,7 @@ from typing import List
 from data.owners import Owner
 from data.rooms import Room
 from data.bookings import Booking
+from data.dogs import Dog
 
 
 def create_account(name: str, email: str) -> Owner:
@@ -21,8 +22,8 @@ def find_account_by_email(email: str) -> Owner:
 
 
 def register_room(active_account: Owner,
-                     room_name, room_price, square_meters, is_carpeted,
-                     has_toys, allow_barker) -> Room:
+                  room_name, room_price, square_meters, is_carpeted,
+                  has_toys, allow_barker) -> Room:
     room = Room()
 
     room.name = room_name
@@ -42,7 +43,7 @@ def register_room(active_account: Owner,
 
 
 def find_rooms_for_user(active_account: Owner) -> List[Room]:
-    db_query = Room.objects(id__in = active_account.room_ids).all()
+    db_query = Room.objects(id__in=active_account.room_ids).all()
     rooms = list(db_query)
 
     return rooms
@@ -60,3 +61,30 @@ def add_availability(active_account: Owner, selected_room: Room,
     room.save()
 
     return room
+
+
+def add_dog(active_account: Owner,
+            dog_name, length, weight,
+            species, is_barking) -> Dog:
+    dog = Dog()
+
+    dog.name = dog_name
+    dog.length = length
+    dog.weight = weight
+    dog.species = species
+    dog.is_barking = is_barking
+
+    dog.save()
+
+    account = find_account_by_email(active_account.email)
+    account.dog_ids.append(dog.id)
+    account.save()
+
+    return dog
+
+
+def find_dogs_for_user(active_account: Owner) -> List[Dog]:
+    db_query = Dog.objects(id__in=active_account.dog_ids).all()
+    dogs = list(db_query)
+
+    return dogs

@@ -1,5 +1,6 @@
 from colorama import Fore
 from infrastructure.switchlang import switch
+import services.data_service as svc
 import program_hosts as hosts
 import infrastructure.state as state
 
@@ -42,8 +43,8 @@ def show_commands():
     print('What action would you like to take:')
     print('[C]reate an account')
     print('[L]ogin to your account')
-    print('[B]ook a room')
-    print('[A]dd a room')
+    print('[B]ook a Room')
+    print('[A]dd a Dog')
     print('View [y]our dogs')
     print('[V]iew your bookings')
     print('[M]ain menu')
@@ -67,17 +68,32 @@ def add_a_dog():
     length = float(input("Enter your dog's length (In Meters): "))
     weight = float(input("Enter your dog's weight (In KGs): "))
     species = input("Enter your dog's species: ")
+    is_barking = input("Is your dog aa barker? [y, n]: ").lower().startswith('y')
 
+    new_dog = svc.add_dog(state.active_account, dog_name,
+                          length, weight,
+                          species, is_barking)
 
+    success_msg("You Dog {} with ID {} has been added!".format(new_dog.name, new_dog.id))
+
+    state.reload_account()
 
 
 def view_your_dogs():
     print(' ****************** Your Dogs **************** ')
 
-    # TODO: Require an account
-    # TODO: Get snakes from DB, show details list
+    if not state.active_account:
+        error_msg("You must login to continue.")
+        return
 
-    print(" -------- NOT IMPLEMENTED -------- ")
+    dogs = svc.find_dogs_for_user(state.active_account)
+
+    print(f"You have {len(dogs)} dogs registered.")
+    for index, dog in enumerate(dogs):
+        print(" * Dog {}: {} is a {} and {} a barker".format(
+            index + 1, dog.name, dog.species,
+            '' if dog.is_barking else 'not'
+        ))
 
 
 def book_a_room():
