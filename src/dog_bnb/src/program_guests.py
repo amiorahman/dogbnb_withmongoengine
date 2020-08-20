@@ -1,4 +1,6 @@
 from colorama import Fore
+from dateutil import parser
+import datetime
 from infrastructure.switchlang import switch
 import services.data_service as svc
 import program_hosts as hosts
@@ -98,21 +100,80 @@ def view_your_dogs():
 
 def book_a_room():
     print(' ****************** Book a Room for your Dog **************** ')
-    # TODO: Require an account
-    # TODO: Verify they have a snake
-    # TODO: Get dates and select snake
-    # TODO: Find cages available across date range
-    # TODO: Let user select cage to book.
 
-    print(" -------- NOT IMPLEMENTED -------- ")
+    if not state.active_account:
+        error_msg("You must login to continue.")
+        return
+
+    dogs = svc.find_dogs_for_user(state.active_account)
+    if not dogs:
+        error_msg("You must add a dog first to book a room for you pet!")
+        add_a_dog()
+
+    print("Find rooms by availability....")
+    checkin = parser.parse(input("Enter Checkin Date [yyyy-mm-dd]: "))
+    if not checkin:
+        error_msg("Checkin date can not be empty.")
+        return
+
+    checkout = parser.parse(input("Enter Checkout Date [yyyy-mm-dd]: "))
+    if not checkout:
+        error_msg("Checkout date can not be empty.")
+        return
+
+    if checkin >= checkout:
+        error_msg("Checkout is not possible before checking in.")
+        return
+
+    for index, dog in enumerate(dogs):
+        print(" * Dog {}: {} is a {} and {} a barker".format(
+            index + 1, dog.name, dog.species,
+            '' if dog.is_barking else 'not'
+        ))
+
+    selected_dog = dogs[int(input("Choose dog to book a room for: ")) - 1]
+    rooms = svc.get_available_rooms(checkin, checkout, selected_dog)
+
+    print(f"{len(rooms)} rooms found in the specified time.")
+    for index, room in enumerate(rooms):
+        print(" {}. {} with size {}, {} carpeted and {} toys.".format(
+            index + 1, room.name, room.square_meters,
+            '' if room.is_carpeted else 'not',
+            'has' if room.has_toys else 'no'
+        ))
+
+    if not rooms:
+        error_msg("Sorry, no rooms available in your specified dates.")
+        return
+
+    selected_room = rooms[int(input("Select a room to book:")) - 1]
+    svc.book_room(state.active_account, checkin, checkout,
+                  selected_dog, selected_room)
+
+    success_msg("Booking succesfull for {} in {} for €{}/night.".format(
+        selected_dog.name, selected_room.name, selected_room.price
+    ))
 
 
 def view_bookings():
     print(' ****************** Your bookings **************** ')
-    # TODO: Require an account
-    # TODO: List booking info along with snake info
 
-    print(" -------- NOT IMPLEMENTED -------- ")
+    if not state.active_account:
+        error_msg("You must login to continue.")
+        return
+
+    dogs = {dog.id: dog for dog in svc.get_dogs_for_user(state.active_account.id)}
+    bookings = svc.get_bookings_for_user(state.active_account.id)
+
+    print(f"You have {len(bookings)} bookings.")
+    for booking in bookings:
+        print(" * Dog {] is booked at {} for {}/night from {} for {} nights.".format(
+            dogs.get(booking.guest_dog_id).name,
+            booking.room.name,
+            booking.room.price,
+            datetime.date(booking.checkin_date),
+            (booking.checkout_date - booking.checkin_date).days
+        ))
 
 
 def success_msg(text):

@@ -88,3 +88,67 @@ def find_dogs_for_user(active_account: Owner) -> List[Dog]:
     dogs = list(db_query)
 
     return dogs
+
+
+def get_available_rooms(checkin: datetime.datetime, checkout: datetime.datetime,
+                        dog: Dog) -> List[Room]:
+    minimum_size = dog.length / 3
+
+    db_query = Room.objects() \
+        .filter(square_meters__gte=minimum_size) \
+        .filter(bookings__checkin_date__lte=checkin) \
+        .filter(bookings__checkout_date__gte=checkout)
+
+    if dog.is_barking:
+        db_query = db_query.filter(allow_barking_dogs=True)
+
+    rooms = db_query.order_by('price', 'square_meters')
+
+    available_rooms = []
+
+    for room in rooms:
+        for booking in room.bookings:
+            if booking.checkin_date <= checkin and booking.checkout_date >= checkout and booking.guest_dog_id is None:
+                available_rooms.append(room)
+
+    return available_rooms
+
+
+def book_room(active_account: Owner, checkin, checkout, dog, room):
+    booking = Booking()
+
+    for bkng in room.bookings:
+        if bkng.checkin_date <= checkin and bkng.checkout_date >= checkout and bkng.guest_dog_id is None:
+            booking = bkng
+
+    booking.guest_owner_id = active_account.id
+    booking.guest_dog_id = dog.id
+    booking.booked_date = datetime.datetime.now()
+
+    room.save()
+
+
+def get_dogs_for_user(active_account: Owner) -> List[Dog]:
+    owner = Owner.objects(id=active_account.id).first()
+    dogs = Dog.objects(id__in=owner.dog_ids).all()
+
+    return list(dogs)
+
+
+def get_bookings_for_user(active_account: Owner) -> List[Booking]:
+    booked_rooms = Room.objects() \
+        .filter(bookings__guest_owner_id=active_account.id) \
+        .only('bookings', 'name')
+
+    def reverse_map_room_to_booking(room, booking):
+        booking.room = room
+        return booking
+
+    bookings = [
+        reverse_map_room_to_booking(room, booking)
+        for room in booked_rooms
+        for booking in room.bookings
+        if booking.guest_owner_id == active_account.id
+    ]
+
+    return bookings
