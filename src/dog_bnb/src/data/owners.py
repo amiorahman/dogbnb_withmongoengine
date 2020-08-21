@@ -10,6 +10,5 @@ class Owner(me.Document):
     room_ids = me.ListField()
 
     meta = {
-        'db_alias': 'core',
         'collection': 'owners'
     }

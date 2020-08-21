@@ -11,6 +11,5 @@ class Dog(me.Document):
     is_barking = me.BooleanField(required=True)
 
     meta = {
-        'db_alias': 'core',
         'collection': 'dogs'
     }

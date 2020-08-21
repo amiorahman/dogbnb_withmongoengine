@@ -15,6 +15,5 @@ class Room(me.Document):
     bookings = me.EmbeddedDocumentListField(Booking)
 
     meta = {
-        'db_alias': 'core',
         'collection': 'rooms'
     }

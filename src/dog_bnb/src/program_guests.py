@@ -1,6 +1,5 @@
 from colorama import Fore
 from dateutil import parser
-import datetime
 from infrastructure.switchlang import switch
 import services.data_service as svc
 import program_hosts as hosts

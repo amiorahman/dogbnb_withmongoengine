@@ -1,9 +1,15 @@
 import datetime
+from mongoengine import connect
 from typing import List
 from data.owners import Owner
 from data.rooms import Room
 from data.bookings import Booking
 from data.dogs import Dog
+
+DB_URI = "mongodb+srv://amiorahman:Madapagad48!@mongocluster.npmma.mongodb.net/dog_bnb?retryWrites=true&w=majority"
+con_test = connect(host=DB_URI)
+if con_test:
+    print("Connection successful")
 
 
 def create_account(name: str, email: str) -> Owner:
@@ -129,7 +135,6 @@ def book_room(active_account: Owner, checkin, checkout, dog, room):
 
 
 def get_dogs_for_user(active_account: Owner) -> List[Dog]:
-    #owner = Owner.objects(id__in=active_account.id).first()
     dogs = Dog.objects(id__in=active_account.dog_ids).all()
 
     return list(dogs)
