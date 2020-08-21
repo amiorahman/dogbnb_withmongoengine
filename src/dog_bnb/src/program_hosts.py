@@ -181,11 +181,26 @@ def update_availability():
 def view_bookings():
     print(' ****************** Your bookings **************** ')
 
-    # TODO: Require an account
-    # TODO: Get cages, and nested bookings as flat list
-    # TODO: Print details for each
+    if not state.active_account:
+        error_msg(f"You must login to continue.")
+        return
 
-    print(" -------- NOT IMPLEMENTED -------- ")
+    rooms = svc.find_rooms_for_user(state.active_account)
+
+    bookings = [
+        (room, booking)
+        for room in rooms
+        for booking in room.bookings
+        if booking.booked_date is not None
+    ]
+
+    print(f"You have {len(bookings)} bookings.")
+    for room, booking in bookings:
+        print(" * Room: {}, Booked Date: {}, from {} to {}, for {} days.".format(
+            room.name, booking.booked_date,
+            booking.checkin_date, booking.checkout_date,
+            (booking.checkout_date - booking.checkin_date).days
+        ))
 
 
 def exit_app():
